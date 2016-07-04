@@ -7,9 +7,13 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -22,7 +26,9 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity implements OnRestTaskCompleted {
     ArrayList<Book> mBookList;
     BookAdapter mBookAdapter;
-    RestTask mRestTask;
+    ListView mListView;
+    TextView mNoItemsView;
+    EditText mSearchField;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +37,26 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
 
         mBookList = new ArrayList<Book>();
 
-        ListView listView = (ListView) findViewById(R.id.list_view);
+        mListView = (ListView) findViewById(R.id.list_view);
         mBookAdapter = new BookAdapter(this, mBookList);
-        listView.setAdapter(mBookAdapter);
+        mListView.setAdapter(mBookAdapter);
+
+        mNoItemsView = (TextView) findViewById(R.id.no_items_view);
+
+        mSearchField = (EditText) findViewById(R.id.search_field);
+
+        mSearchField.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
+            {
+                if(actionId == EditorInfo.IME_ACTION_DONE)
+                {
+                    onStartSearch(mSearchField);
+                }
+
+                return false;
+            }
+        });
     }
 
     public void onStartSearch(View aView) {
@@ -42,8 +65,7 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
 
         if (networkInfo != null && networkInfo.isConnected()) {
 
-            EditText searchField = (EditText) findViewById(R.id.search_field);
-            String searchString = searchField.getText().toString();
+            String searchString = mSearchField.getText().toString();
 
             if (!searchString.trim().isEmpty()) {
                 Uri myUri = buildUri(searchString);
@@ -58,6 +80,17 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
         mBookList.clear();
         parseJson(aResultString);
         mBookAdapter.notifyDataSetChanged();
+
+        if (mBookList.isEmpty())
+        {
+            mNoItemsView.setVisibility(View.VISIBLE);
+            mListView.setVisibility(View.GONE);
+        }
+        else
+        {
+            mNoItemsView.setVisibility(View.GONE);
+            mListView.setVisibility(View.VISIBLE);
+        }
     }
 
     private Uri.Builder buildUriBuilder() {
@@ -83,6 +116,13 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
         try
         {
             JSONObject jsonObj = new JSONObject(jsonString);
+
+            if (!jsonObj.has("items"))
+            {
+                Toast.makeText(this, R.string.no_results_message, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             JSONArray volumes = jsonObj.getJSONArray("items");
 
             for (int i = 0; i < volumes.length(); i++) 
@@ -96,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
         }
         catch (JSONException e)
         {
-            Toast.makeText(this, "Error parsing response", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.error_parsing_message, Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -15,6 +15,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/search_field"
+        android:singleLine="true"
+        android:inputType="text"
+        android:imeOptions="actionDone"
         android:hint="@string/search_hint"/>
 
     <Button
@@ -24,10 +27,20 @@
         android:onClick="onStartSearch"
         android:textAllCaps="true"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="18dp"
+        android:text="@string/no_items_message"
+        android:id="@+id/no_items_view"/>
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:visibility="gone"
         android:id="@+id/list_view"/>
 
 </LinearLayout>
