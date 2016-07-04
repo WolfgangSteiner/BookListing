@@ -2,9 +2,16 @@ package com.example.android.booklisting;
 
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class RestTask extends AsyncTask<Uri, Void, String>
 {
@@ -20,7 +27,29 @@ public class RestTask extends AsyncTask<Uri, Void, String>
     {
         try
         {
-            return "This is a Test!";
+            URL myURL = new URL(params[0].toString());
+            HttpURLConnection c = (HttpURLConnection) myURL.openConnection();
+            c.setRequestMethod("GET");
+            c.setRequestProperty("Accept", "application/json");
+
+            int responseCode = c.getResponseCode();
+
+            if (responseCode != 200)
+            {
+                throw new RuntimeException("Failed : HTTP error code : "
+                        + c.getResponseCode());
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader((c.getInputStream())));
+
+            String result = "";
+            String chunk;
+            while ((chunk = br.readLine()) != null)
+            {
+                result += chunk;
+            }
+
+            return result;
         }
         catch (Exception e)
         {
@@ -33,7 +62,6 @@ public class RestTask extends AsyncTask<Uri, Void, String>
     @Override
     protected void onPostExecute(String aResult)
     {
-        Log.i("httpRequest finished:", "RESULT = " + aResult);
         mListener.onRestTaskCompleted(aResult);
     }
 

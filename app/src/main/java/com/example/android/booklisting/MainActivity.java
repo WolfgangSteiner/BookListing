@@ -39,16 +39,15 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
 
         if (networkInfo != null && networkInfo.isConnected())
         {
-            mBookList.clear();
 
             EditText searchField = (EditText) findViewById(R.id.search_field);
-            Uri myUri = buildUri(searchField.getText().toString());
+            String searchString = searchField.getText().toString();
 
-            Log.i("Uri:", myUri.toString());
-            new RestTask(this).execute(myUri);
-
-            mBookList.add(new Book("20000 miles under the sea", "Jules Verne"));
-            mBookAdapter.notifyDataSetChanged();
+            if (!searchString.trim().isEmpty())
+            {
+                Uri myUri = buildUri(searchString);
+                new RestTask(this).execute(myUri);
+            }
         }
         else
         {
@@ -58,7 +57,9 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
 
     public void onRestTaskCompleted(String aResultString)
     {
-        Log.i("Result:", aResultString);
+        mBookList.clear();
+        mBookList.add(new Book("20000 miles under the sea", "Jules Verne"));
+        mBookAdapter.notifyDataSetChanged();
     }
 
     private Uri.Builder buildUriBuilder()
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements OnRestTaskComplet
         Uri.Builder builder = buildUriBuilder();
         builder.appendPath("volumes");
         builder.appendQueryParameter("q", aSearchString);
+        builder.appendQueryParameter("key", BuildConfig.GOOGLE_BOOKS_API_KEY);
 
         return builder.build();
     }
