@@ -3,18 +3,22 @@ package com.example.android.booklisting;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity implements OnRestTaskCompleted
 {
     ArrayList<Book> mBookList;
     BookAdapter mBookAdapter;
+    RestTask mRestTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,13 @@ public class MainActivity extends AppCompatActivity
         if (networkInfo != null && networkInfo.isConnected())
         {
             mBookList.clear();
+
+            EditText searchField = (EditText) findViewById(R.id.search_field);
+            Uri myUri = buildUri(searchField.getText().toString());
+
+            Log.i("Uri:", myUri.toString());
+            new RestTask(this).execute(myUri);
+
             mBookList.add(new Book("20000 miles under the sea", "Jules Verne"));
             mBookAdapter.notifyDataSetChanged();
         }
@@ -43,5 +54,30 @@ public class MainActivity extends AppCompatActivity
         {
             Toast.makeText(this, R.string.network_not_reachable, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void onRestTaskCompleted(String aResultString)
+    {
+        Log.i("Result:", aResultString);
+    }
+
+    private Uri.Builder buildUriBuilder()
+    {
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("https")
+                .authority("www.googleapis.com")
+                .appendPath("books")
+                .appendPath("v1");
+
+        return builder;
+    }
+
+    private Uri buildUri(String aSearchString)
+    {
+        Uri.Builder builder = buildUriBuilder();
+        builder.appendPath("volumes");
+        builder.appendQueryParameter("q", aSearchString);
+
+        return builder.build();
     }
 }
