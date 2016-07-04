@@ -2,4 +2,5 @@
     <string name="app_name">BookListing</string>
     <string name="search_button">search</string>
     <string name="search_hint">Search in books</string>
+    <string name="network_not_reachable">Network not connected!</string>
 </resources>
